@@ -1,183 +1,287 @@
-// Recharts from CDN
-const { PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Finance Tracker</title>
 
-const categories = ["Food", "Housing", "Gym", "Business", "Entertainment", "Other"];
+    <!-- React + Recharts -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-const colors = {
-  green: "#5FAF7A",
-  beige: "#E6E2D9",
-  teal: "#6FA7A3",
-  dark: "#3F5F5F",
-  yellow: "#E5C46A",
-  orange: "#E36A3D"
-};
+    <!-- STYLES -->
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        background: #f3f4f6;
+      }
 
-function App() {
-  const [transactions, setTransactions] = React.useState([]);
-  const [accounts, setAccounts] = React.useState([]);
-  const [budgets, setBudgets] = React.useState({});
-  const [goals, setGoals] = React.useState([]);
+      .container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 30px 20px;
+      }
 
-  const [form, setForm] = React.useState({
-    name: "",
-    amount: "",
-    type: "expense",
-    category: "Food",
-    accountName: "",
-    accountBalance: ""
-  });
+      h1 {
+        margin-bottom: 25px;
+        font-size: 28px;
+      }
 
-  React.useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("financeApp"));
-    if (data) {
-      setTransactions(data.transactions || []);
-      setAccounts(data.accounts || []);
-      setBudgets(data.budgets || {});
-      setGoals(data.goals || []);
-    }
-  }, []);
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
 
-  React.useEffect(() => {
-    localStorage.setItem("financeApp", JSON.stringify({ transactions, accounts, budgets, goals }));
-  }, [transactions, accounts, budgets, goals]);
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      }
 
-  const addTransaction = () => {
-    if (!form.name || !form.amount) return;
-    setTransactions([...transactions, { ...form, amount: parseFloat(form.amount) }]);
-    setForm({ ...form, name: "", amount: "" });
-  };
+      .card h3 {
+        margin-top: 0;
+      }
 
-  const totalIncome = transactions.filter(t => t.type === "income").reduce((a, t) => a + t.amount, 0);
-  const totalExpenses = transactions.filter(t => t.type === "expense").reduce((a, t) => a + t.amount, 0);
-  const savings = totalIncome - totalExpenses;
+      input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+      }
 
-  const netWorth = accounts.reduce((a, acc) => a + acc.balance, 0);
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+        font-weight: 500;
+      }
 
-  const totalBudget = Object.values(budgets).reduce((a, b) => a + (b || 0), 0);
-  const spendingStatus = totalExpenses > totalBudget ? "High" : "On Track";
+      button:hover {
+        background: #1e40af;
+      }
 
-  const pieData = [
-    { name: "Income", value: totalIncome },
-    { name: "Spending", value: totalExpenses },
-    { name: "Savings", value: savings > 0 ? savings : 0 }
-  ];
+      .account-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f9fafb;
+        padding: 10px;
+        border-radius: 10px;
+        margin-top: 8px;
+      }
 
-  const pieColors = [colors.teal, colors.orange, colors.yellow];
+      .flex {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+    </style>
+  </head>
 
-  return (
-    <div style={{ padding: 20, background: colors.beige }}>
+  <body>
+    <div id="root"></div>
 
-      <h1>Finance Dashboard</h1>
+    <script type="text/babel">
+      const { PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
 
-      {/* Summary */}
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <div style={{ background: colors.green, color: "white", padding: 15, borderRadius: 10 }}>
-          <h3>Monthly Summary</h3>
-          <p>Income: ${totalIncome.toFixed(2)}</p>
-          <p>Spending: ${totalExpenses.toFixed(2)}</p>
-          <p>Savings: ${savings.toFixed(2)}</p>
-        </div>
+      const categories = ["Food", "Housing", "Gym", "Business", "Entertainment", "Other"];
 
-        <div style={{ background: "white", padding: 15, borderRadius: 10 }}>
-          <h3>Breakdown</h3>
-          <div style={{ width: 250, height: 200 }}>
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" outerRadius={80}>
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={pieColors[index % pieColors.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
+      function App() {
+        const [transactions, setTransactions] = React.useState([]);
+        const [accounts, setAccounts] = React.useState([]);
+        const [budgets, setBudgets] = React.useState({});
+
+        const [form, setForm] = React.useState({
+          name: "",
+          amount: "",
+          type: "expense",
+          category: "Food",
+          accountName: "",
+          accountBalance: ""
+        });
+
+        React.useEffect(() => {
+          const data = JSON.parse(localStorage.getItem("financeApp"));
+          if (data) {
+            setTransactions(data.transactions || []);
+            setAccounts(data.accounts || []);
+            setBudgets(data.budgets || {});
+          }
+        }, []);
+
+        React.useEffect(() => {
+          localStorage.setItem("financeApp", JSON.stringify({ transactions, accounts, budgets }));
+        }, [transactions, accounts, budgets]);
+
+        const addTransaction = () => {
+          if (!form.name || !form.amount) return;
+          setTransactions([...transactions, { ...form, amount: parseFloat(form.amount) }]);
+          setForm({ ...form, name: "", amount: "" });
+        };
+
+        const totalIncome = transactions.filter(t => t.type === "income").reduce((a, t) => a + t.amount, 0);
+        const totalExpenses = transactions.filter(t => t.type === "expense").reduce((a, t) => a + t.amount, 0);
+        const savings = totalIncome - totalExpenses;
+
+        const netWorth = accounts.reduce((a, acc) => a + acc.balance, 0);
+
+        const totalBudget = Object.values(budgets).reduce((a, b) => a + (b || 0), 0);
+
+        const pieData = [
+          { name: "Income", value: totalIncome },
+          { name: "Spending", value: totalExpenses },
+          { name: "Savings", value: savings > 0 ? savings : 0 }
+        ];
+
+        const pieColors = ["#6FA7A3", "#E36A3D", "#E5C46A"];
+
+        return (
+          <div className="container">
+            <h1>💰 Finance Dashboard</h1>
+
+            <div className="grid">
+
+              <div className="card">
+                <h3>Monthly Summary</h3>
+                <p>Income: ${totalIncome.toFixed(2)}</p>
+                <p>Spending: ${totalExpenses.toFixed(2)}</p>
+                <p>Savings: ${savings.toFixed(2)}</p>
+              </div>
+
+              <div className="card">
+                <h3>Breakdown</h3>
+                <div style={{ width: "100%", height: 200 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={pieData} dataKey="value" outerRadius={80}>
+                        {pieData.map((entry, index) => (
+                          <Cell key={index} fill={pieColors[index % pieColors.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="card">
+                <h3>Accounts</h3>
+
+                <input
+                  placeholder="Account Name"
+                  value={form.accountName}
+                  onChange={e => setForm({ ...form, accountName: e.target.value })}
+                />
+
+                <input
+                  placeholder="Balance"
+                  type="number"
+                  value={form.accountBalance}
+                  onChange={e => setForm({ ...form, accountBalance: e.target.value })}
+                />
+
+                <button onClick={() => {
+                  if (!form.accountName || !form.accountBalance) return;
+                  setAccounts([...accounts, {
+                    name: form.accountName,
+                    balance: parseFloat(form.accountBalance)
+                  }]);
+                  setForm({ ...form, accountName: "", accountBalance: "" });
+                }}>
+                  Add Account
+                </button>
+
+                {accounts.map((a, i) => (
+                  <div key={i} className="account-row">
+                    <div>
+                      <strong>{a.name}</strong><br />
+                      ${a.balance}
+                    </div>
+                    <div className="flex">
+                      <button onClick={() => {
+                        const newBalance = prompt("Update balance:", a.balance);
+                        if (newBalance === null) return;
+                        const updated = [...accounts];
+                        updated[i].balance = parseFloat(newBalance) || 0;
+                        setAccounts(updated);
+                      }}>Edit</button>
+
+                      <button onClick={() => {
+                        setAccounts(accounts.filter((_, idx) => idx !== i));
+                      }}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+
+                <p><b>Total: ${netWorth.toFixed(2)}</b></p>
+              </div>
+
+              <div className="card">
+                <h3>Budget</h3>
+                {categories.map(cat => (
+                  <div key={cat}>
+                    <label>{cat}</label>
+                    <input
+                      type="number"
+                      value={budgets[cat] || ""}
+                      onChange={e => setBudgets({
+                        ...budgets,
+                        [cat]: parseFloat(e.target.value) || 0
+                      })}
+                    />
+                  </div>
+                ))}
+                <p>Total: ${totalBudget.toFixed(2)}</p>
+              </div>
+
+              <div className="card">
+                <h3>Transactions</h3>
+
+                <input
+                  placeholder="Name"
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                />
+
+                <input
+                  placeholder="Amount"
+                  type="number"
+                  value={form.amount}
+                  onChange={e => setForm({ ...form, amount: e.target.value })}
+                />
+
+                <select
+                  value={form.type}
+                  onChange={e => setForm({ ...form, type: e.target.value })}
+                >
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                </select>
+
+                <button onClick={addTransaction}>Add Transaction</button>
+
+                {transactions.map((t, i) => (
+                  <div key={i} className="account-row">
+                    <span>{t.name}</span>
+                    <span>{t.type === "expense" ? "-" : "+"}${t.amount}</span>
+                  </div>
+                ))}
+              </div>
+
+            </div>
           </div>
-        </div>
-      </div>
+        );
+      }
 
-      {/* Accounts */}
-      <div style={{ marginTop: 20, background: colors.teal, color: "white", padding: 15, borderRadius: 10 }}>
-        <h3>Accounts</h3>
-
-        <input placeholder="Account Name" value={form.accountName}
-          onChange={e => setForm({ ...form, accountName: e.target.value })} />
-
-        <input placeholder="Balance" type="number" value={form.accountBalance}
-          onChange={e => setForm({ ...form, accountBalance: e.target.value })} />
-
-        <button onClick={() => {
-          if (!form.accountName || !form.accountBalance) return;
-          setAccounts([...accounts, {
-            name: form.accountName,
-            balance: parseFloat(form.accountBalance)
-          }]);
-          setForm({ ...form, accountName: "", accountBalance: "" });
-        }}>
-          Add Account
-        </button>
-
-        {accounts.map((a, i) => (
-          <div key={i}>
-            {a.name} - ${a.balance}
-            <button onClick={() => {
-              const newBalance = prompt("Update balance:", a.balance);
-              if (newBalance === null) return;
-              const updated = [...accounts];
-              updated[i].balance = parseFloat(newBalance) || 0;
-              setAccounts(updated);
-            }}>Edit</button>
-
-            <button onClick={() => {
-              setAccounts(accounts.filter((_, idx) => idx !== i));
-            }}>Delete</button>
-          </div>
-        ))}
-
-        <p><b>Total: ${netWorth.toFixed(2)}</b></p>
-      </div>
-
-      {/* Budget */}
-      <div style={{ marginTop: 20, background: colors.yellow, padding: 15, borderRadius: 10 }}>
-        <h3>Budget</h3>
-        {categories.map(cat => (
-          <div key={cat}>
-            {cat}
-            <input type="number"
-              value={budgets[cat] || ""}
-              onChange={e => setBudgets({ ...budgets, [cat]: parseFloat(e.target.value) || 0 })}
-            />
-          </div>
-        ))}
-        <p>Total Budget: ${totalBudget.toFixed(2)}</p>
-      </div>
-
-      {/* Transactions */}
-      <div style={{ marginTop: 20, background: colors.dark, color: "white", padding: 15, borderRadius: 10 }}>
-        <h3>Transactions</h3>
-
-        <input placeholder="Name" value={form.name}
-          onChange={e => setForm({ ...form, name: e.target.value })} />
-
-        <input placeholder="Amount" type="number" value={form.amount}
-          onChange={e => setForm({ ...form, amount: e.target.value })} />
-
-        <select value={form.type}
-          onChange={e => setForm({ ...form, type: e.target.value })}>
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
-        </select>
-
-        <button onClick={addTransaction}>Add Transaction</button>
-
-        {transactions.map((t, i) => (
-          <div key={i}>
-            {t.name} {t.type === "expense" ? "-" : "+"}${t.amount}
-          </div>
-        ))}
-      </div>
-
-    </div>
-  );
-}
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
