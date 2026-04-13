@@ -3,10 +3,9 @@
   <head>
     <title>Finance Tracker</title>
 
-    <!-- React + Recharts -->
+    <!-- React -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- STYLES -->
@@ -41,10 +40,6 @@
         box-shadow: 0 6px 18px rgba(0,0,0,0.06);
       }
 
-      .card h3 {
-        margin-top: 0;
-      }
-
       input, select {
         width: 100%;
         padding: 10px;
@@ -61,7 +56,6 @@
         background: #2563eb;
         color: white;
         cursor: pointer;
-        font-weight: 500;
       }
 
       button:hover {
@@ -81,7 +75,6 @@
       .flex {
         display: flex;
         gap: 10px;
-        flex-wrap: wrap;
       }
     </style>
   </head>
@@ -90,8 +83,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-      const { PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
-
       const categories = ["Food", "Housing", "Gym", "Business", "Entertainment", "Other"];
 
       function App() {
@@ -132,16 +123,7 @@
         const savings = totalIncome - totalExpenses;
 
         const netWorth = accounts.reduce((a, acc) => a + acc.balance, 0);
-
         const totalBudget = Object.values(budgets).reduce((a, b) => a + (b || 0), 0);
-
-        const pieData = [
-          { name: "Income", value: totalIncome },
-          { name: "Spending", value: totalExpenses },
-          { name: "Savings", value: savings > 0 ? savings : 0 }
-        ];
-
-        const pieColors = ["#6FA7A3", "#E36A3D", "#E5C46A"];
 
         return (
           <div className="container">
@@ -158,16 +140,20 @@
 
               <div className="card">
                 <h3>Breakdown</h3>
-                <div style={{ width: "100%", height: 200 }}>
-                  <ResponsiveContainer>
-                    <PieChart>
-                      <Pie data={pieData} dataKey="value" outerRadius={80}>
-                        {pieData.map((entry, index) => (
-                          <Cell key={index} fill={pieColors[index % pieColors.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+
+                <p>Income</p>
+                <div style={{ background: "#e5e7eb", borderRadius: 6 }}>
+                  <div style={{ width: "100%", height: 10, background: "#6FA7A3" }}></div>
+                </div>
+
+                <p>Spending</p>
+                <div style={{ background: "#e5e7eb", borderRadius: 6 }}>
+                  <div style={{ width: "100%", height: 10, background: "#E36A3D" }}></div>
+                </div>
+
+                <p>Savings</p>
+                <div style={{ background: "#e5e7eb", borderRadius: 6 }}>
+                  <div style={{ width: savings > 0 ? "100%" : "0%", height: 10, background: "#E5C46A" }}></div>
                 </div>
               </div>
 
